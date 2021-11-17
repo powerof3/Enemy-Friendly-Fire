@@ -1,83 +1,67 @@
-﻿#include "version.h"
-
-
-class EFF
+namespace EFF
 {
-public:
-	static void Hook()
+	struct CheckValidTarget
 	{
-		REL::Relocation<std::uintptr_t> vtbl{ REL::ID(261397) };  //Character vtbl
-		vtbl.write_vfunc(0x0D6, CheckValidTarget);
-	}
-private:
-	static bool CheckValidTarget(RE::Actor* a_this, RE::Actor& a_ref)
+		static bool thunk([[maybe_unused]] RE::Actor* a_this, [[maybe_unused]] RE::TESObjectREFR& a_ref)
+		{
+			return true;
+		}
+		static inline REL::Relocation<decltype(thunk)> func;
+
+		static inline size_t size = 0x0D6;
+	};
+
+	void Install()
 	{
-		return true;
+		stl::write_vfunc<RE::Character, CheckValidTarget>();
 	}
-};
+}
 
-
-extern "C" DLLEXPORT bool APIENTRY SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
-	try {
-		auto path = logger::log_directory().value() / "po3_EnemyFriendlyFire.log";
-		auto log = spdlog::basic_logger_mt("global log", path.string(), true);
-		log->flush_on(spdlog::level::info);
-
-#ifndef NDEBUG
-		log->set_level(spdlog::level::debug);
-		log->sinks().push_back(std::make_shared<spdlog::sinks::msvc_sink_mt>());
-#else
-		log->set_level(spdlog::level::info);
-
-#endif
-		spdlog::set_default_logger(log);
-		spdlog::set_pattern("[%H:%M:%S] [%l] %v");
-
-		logger::info("Enemy Friendly Fire {}", SOS_VERSION_VERSTRING);
-
-		a_info->infoVersion = SKSE::PluginInfo::kVersion;
-		a_info->name = "Enemy Friendly Fire";
-		a_info->version = SOS_VERSION_MAJOR;
-
-		if (a_skse->IsEditor()) {
-			logger::critical("Loaded in editor, marking as incompatible");
-			return false;
-		}
-
-		const auto ver = a_skse->RuntimeVersion();
-		if (ver < SKSE::RUNTIME_1_5_39) {
-			logger::critical("Unsupported runtime version {}", ver.string());
-			return false;
-		}
-	} catch (const std::exception& e) {
-		logger::critical(e.what());
+	auto path = logger::log_directory();
+	if (!path) {
 		return false;
-	} catch (...) {
-		logger::critical("caught unknown exception");
+	}
+
+	*path /= fmt::format(FMT_STRING("{}.log"), Version::PROJECT);
+	auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
+
+	auto log = std::make_shared<spdlog::logger>("global log"s, std::move(sink));
+
+	log->set_level(spdlog::level::info);
+	log->flush_on(spdlog::level::info);
+
+	spdlog::set_default_logger(std::move(log));
+	spdlog::set_pattern("[%H:%M:%S:%e] %v"s);
+
+	logger::info(FMT_STRING("{} v{}"), Version::PROJECT, Version::NAME);
+
+	a_info->infoVersion = SKSE::PluginInfo::kVersion;
+	a_info->name = "Enemy Friendly Fire";
+	a_info->version = Version::MAJOR;
+
+	if (a_skse->IsEditor()) {
+		logger::critical("Loaded in editor, marking as incompatible"sv);
+		return false;
+	}
+
+	const auto ver = a_skse->RuntimeVersion();
+	if (ver < SKSE::RUNTIME_1_5_39) {
+		logger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
 		return false;
 	}
 
 	return true;
 }
 
-
-extern "C" DLLEXPORT bool APIENTRY SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
-	try {
-		logger::info("Enemy Friendly Fire loaded");
+	logger::info("loaded plugin");
 
-		SKSE::Init(a_skse);
+	SKSE::Init(a_skse);
 
-		EFF::Hook();
-
-	} catch (const std::exception& e) {
-		logger::critical(e.what());
-		return false;
-	} catch (...) {
-		logger::critical("caught unknown exception");
-		return false;
-	}
+	EFF::Install();
 
 	return true;
 }
