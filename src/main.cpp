@@ -2,9 +2,9 @@ namespace EFF
 {
 	struct CheckValidTarget
 	{
-		static bool thunk([[maybe_unused]] RE::Actor* a_this, [[maybe_unused]] RE::TESObjectREFR& a_ref)
+		static bool thunk(RE::Actor* a_this, RE::Actor& a_ref)
 		{
-			return true;
+			return a_this->IsInCombat() && a_ref.IsInCombat();
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 
