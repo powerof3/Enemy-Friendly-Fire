@@ -2,11 +2,11 @@ namespace EFF
 {
 	struct CheckValidTarget
 	{
-		static bool thunk(RE::Actor* a_this, RE::Actor& a_ref)
+		static bool thunk(RE::Actor*, RE::TESObjectREFR&)
 		{
 			return true;
 		}
-		static inline REL::Relocation<decltype(thunk)> func;
+		[[maybe_unused]] static inline REL::Relocation<decltype(thunk)> func;
 
 		static inline size_t size = 0x0D6;
 	};
