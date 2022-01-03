@@ -4,7 +4,7 @@ namespace EFF
 	{
 		static bool thunk(RE::Actor* a_this, RE::Actor& a_ref)
 		{
-			return a_this->IsInCombat() && a_ref.IsInCombat();
+			return true;
 		}
 		static inline REL::Relocation<decltype(thunk)> func;
 
