@@ -12,7 +12,7 @@ namespace EnemyFriendlyFire
 #ifndef SKYRIMVR
 		static inline constexpr std::size_t size = 0x0D6;
 #else
-		static inline constexpr std::size_t size = 0x0D8
+		static inline constexpr std::size_t size = 0x0D8;
 #endif
 	};
 
