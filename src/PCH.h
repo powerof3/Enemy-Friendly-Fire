@@ -1,20 +1,17 @@
 #pragma once
 
 #include "RE/Skyrim.h"
+#include "RE/REX.h"
 #include "SKSE/SKSE.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
-#include <xbyak/xbyak.h>
 
 #define DLLEXPORT __declspec(dllexport)
 
-namespace logger = SKSE::log;
 using namespace std::literals;
 
 namespace stl
 {
-	using namespace SKSE::stl;
-
     template <class F, class T>
 	void write_vfunc()
 	{
